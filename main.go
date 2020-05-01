@@ -47,6 +47,8 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
             return
         }
 
+        // Try generating a key for our result map. If there's already a result in place,
+        // regenerate the key.
         var resultKey resKey
         hasKey := true
 
@@ -56,10 +58,7 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
             fmt.Println(hasKey)
         }
 
-        // Split out the incomingValue & generate a resultKey
         incomingValue := resValue(r.FormValue("value"))
-
-        // Read the value into the main map
         m[resultKey] = incomingValue
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
