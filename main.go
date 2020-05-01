@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "strings"
+    "strconv"
     "time"
     "encoding/json"
     "math/rand"
@@ -73,14 +74,28 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    portNumber := "8080"
-    if len(os.Args) >= 2 {
-        portNumber = os.Args[1]
-    }
-    addr := ":" + portNumber
+    PORT_NUMBER_MIN := uint64(1)
+    PORT_NUMBER_MAX := uint64(65535)
 
-    message := fmt.Sprintf("Listening on port %s", portNumber)
-    fmt.Println(message)
+    // TODO: I'm sure there's more shit I can do to lock this down, but...no.
+    portNumber := "8080"
+    startMessage := fmt.Sprintf("Listening on port %s", portNumber)
+
+    if len(os.Args) >= 2 {
+        rawPortNumberStr := os.Args[1]
+        portNumberAsInt, err := strconv.ParseUint(rawPortNumberStr, 0, 16)
+
+        if err != nil {
+            startMessage = fmt.Sprintf("There was an error converting %s; starting on %s",
+                                       rawPortNumberStr, portNumber)
+        } else if (portNumberAsInt < PORT_NUMBER_MIN) || (portNumberAsInt >= PORT_NUMBER_MAX) {
+            startMessage = fmt.Sprintf("Port %s is out of range; starting on %s",
+                                       rawPortNumberStr, portNumber)
+        } else {
+            portNumber = rawPortNumberStr
+            startMessage = fmt.Sprintf("Listening on port %s", portNumber)
+        }
+    }
 
     m := resultMap{}
 
@@ -88,6 +103,8 @@ func main() {
     http.HandleFunc("/lengthen/", buildLengthen(m))
     http.HandleFunc("/shorten/", buildShorten(m))
 
+    fmt.Println(startMessage)
+    addr := ":" + portNumber
     http.ListenAndServe(addr, nil)
 }
 
