@@ -9,34 +9,34 @@ import (
     "net/http"
 )
 
-type resultHashKey uint32
-type resultHashValue string
-type resultMap map[resultHashKey]resultHashValue
+type resKey uint32
+type resValue string
+type resultMap map[resKey]resValue
 
-func hash(s resultHashValue) resultHashKey {
+func getResultMapKey(s resValue) resKey {
     h := fnv.New32a()
     h.Write([]byte(s))
 
-    return resultHashKey(h.Sum32())
+    return resKey(h.Sum32())
 }
 
 func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-        // Split out the requested item, then parse & cast it to a `resultHashKey`
+        // Split out the requested item, then parse & cast it to a `resKey`
         requestedItem := strings.SplitN(r.URL.Path, "/", 3)[2]
         requestedItemAsInt, _ := strconv.Atoi(requestedItem)
-        requestedItemKey := resultHashKey(requestedItemAsInt)
+        resultKey := resKey(requestedItemAsInt)
 
         // Read the item at the hashed address
         // TODO: Get element from array
         // TODO: Use boolean "found" value to return the appropriate HTTP code
-        value, _ := m[requestedItemKey]
+        resultValue, _ := m[resultKey]
 
         json.NewEncoder(w).Encode(map[string]interface{}{
             "requestedItem": requestedItem,
-            "value": value,
+            "value": resultValue,
         })
     }
 }
@@ -52,17 +52,17 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
 
         // Hash the incoming `value`
         // TODO: We should salt these as well
-        value := resultHashValue(r.FormValue("value"))
-        valueHash := hash(value)
+        incomingValue := resValue(r.FormValue("value"))
+        resultKey := getResultMapKey(incomingValue)
 
         // Read the value into the main map
         // TODO: Append to an array if we have multiple values
-        m[valueHash] = value
+        m[resultKey] = incomingValue
 
         // TODO: Return a response with a CREATED code
         json.NewEncoder(w).Encode(map[string]interface{}{
-            "value": value,
-            "location": valueHash,
+            "value": incomingValue,
+            "location": resultKey,
         })
     }
 }
