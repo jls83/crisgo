@@ -22,6 +22,22 @@ func getResultMapKey() resKey {
     return resKey(r1.Intn(100))
 }
 
+func buildRedirector(m resultMap) func(w http.ResponseWriter, r *http.Request) {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Split out the requested item, then parse & cast it to a `resKey`
+        requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+
+        // Read the item at the hashed address
+        resultValue, hasValue := m[requestedItem]
+
+        if hasValue {
+            http.Redirect(w, r, string(resultValue), 301)
+            return
+        }
+        http.NotFound(w, r)
+    }
+}
+
 func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         // Split out the requested item, then parse & cast it to a `resKey`
@@ -104,7 +120,7 @@ func main() {
     // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
     http.HandleFunc("/lengthen/", buildLengthen(m))
     http.HandleFunc("/shorten/", buildShorten(m))
-
+    http.HandleFunc("/redirector/", buildRedirector(m))
 
     fmt.Println(startMessage)
     addr := ":" + portNumber
