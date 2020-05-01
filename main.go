@@ -12,7 +12,7 @@ type resKey string
 type resValue string
 type resultMap map[resKey]resValue
 
-func getResultMapKey(s resValue) resKey {
+func getResultMapKey() resKey {
     // FOR NOW
     return resKey(rand.Intn(100))
 }
@@ -48,7 +48,7 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
         // Hash the incoming `value`
         // TODO: We should salt these as well
         incomingValue := resValue(r.FormValue("value"))
-        resultKey := getResultMapKey(incomingValue)
+        resultKey := getResultMapKey()
 
         // Read the value into the main map
         // TODO: Append to an array if we have multiple values
@@ -67,7 +67,7 @@ func main() {
 
     fmt.Println("Starting")
 
-    m := resultMap{"1": "hey", "2": "ho"}
+    m := resultMap{}
 
     // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
     http.HandleFunc("/lengthen/", buildLengthen(m))
