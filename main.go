@@ -22,14 +22,14 @@ func getResultMapKey() resKey {
 
 func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
         // Split out the requested item, then parse & cast it to a `resKey`
         requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
         // Read the item at the hashed address
         // TODO: Use boolean "found" value to return the appropriate HTTP code
         resultValue, _ := m[requestedItem]
+
+        w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
         json.NewEncoder(w).Encode(map[string]interface{}{
             "requestedItem": requestedItem,
