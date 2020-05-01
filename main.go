@@ -44,8 +44,7 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
             return
         }
 
-        // Hash the incoming `value`
-        // TODO: We should salt these as well
+        // Split out the incomingValue & generate a resultKey
         incomingValue := resValue(r.FormValue("value"))
         resultKey := getResultMapKey()
 
