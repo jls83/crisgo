@@ -2,22 +2,19 @@ package main
 
 import (
     "fmt"
-    "strconv"
     "strings"
     "encoding/json"
-    "hash/fnv"
+    "math/rand"
     "net/http"
 )
 
-type resKey uint32
+type resKey string
 type resValue string
 type resultMap map[resKey]resValue
 
 func getResultMapKey(s resValue) resKey {
-    h := fnv.New32a()
-    h.Write([]byte(s))
-
-    return resKey(h.Sum32())
+    // FOR NOW
+    return resKey(rand.Intn(100))
 }
 
 func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
@@ -25,14 +22,12 @@ func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
         // Split out the requested item, then parse & cast it to a `resKey`
-        requestedItem := strings.SplitN(r.URL.Path, "/", 3)[2]
-        requestedItemAsInt, _ := strconv.Atoi(requestedItem)
-        resultKey := resKey(requestedItemAsInt)
+        requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
         // Read the item at the hashed address
         // TODO: Get element from array
         // TODO: Use boolean "found" value to return the appropriate HTTP code
-        resultValue, _ := m[resultKey]
+        resultValue, _ := m[requestedItem]
 
         json.NewEncoder(w).Encode(map[string]interface{}{
             "requestedItem": requestedItem,
@@ -72,7 +67,7 @@ func main() {
 
     fmt.Println("Starting")
 
-    m := resultMap{1: "hey", 2: "ho"}
+    m := resultMap{"1": "hey", "2": "ho"}
 
     // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
     http.HandleFunc("/lengthen/", buildLengthen(m))
