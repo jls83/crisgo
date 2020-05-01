@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "strings"
+    "time"
     "encoding/json"
     "math/rand"
     "net/http"
@@ -14,7 +15,9 @@ type resultMap map[resKey]resValue
 
 func getResultMapKey() resKey {
     // FOR NOW
-    return resKey(rand.Intn(100))
+    s1 := rand.NewSource(time.Now().UnixNano())
+    r1 := rand.New(s1)
+    return resKey(r1.Intn(100))
 }
 
 func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
@@ -44,9 +47,17 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
             return
         }
 
+        var resultKey resKey
+        hasKey := true
+
+        for hasKey {
+            resultKey = getResultMapKey()
+            _, hasKey = m[resultKey]
+            fmt.Println(hasKey)
+        }
+
         // Split out the incomingValue & generate a resultKey
         incomingValue := resValue(r.FormValue("value"))
-        resultKey := getResultMapKey()
 
         // Read the value into the main map
         m[resultKey] = incomingValue
