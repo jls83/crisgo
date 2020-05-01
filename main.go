@@ -2,6 +2,7 @@ package main
 
 import (
     "fmt"
+    "os"
     "strings"
     "time"
     "encoding/json"
@@ -72,9 +73,14 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    PORT := ":8080"
+    portNumber := "8080"
+    if len(os.Args) >= 2 {
+        portNumber = os.Args[1]
+    }
+    addr := ":" + portNumber
 
-    fmt.Println("Starting")
+    message := fmt.Sprintf("Listening on port %s", portNumber)
+    fmt.Println(message)
 
     m := resultMap{}
 
@@ -82,6 +88,6 @@ func main() {
     http.HandleFunc("/lengthen/", buildLengthen(m))
     http.HandleFunc("/shorten/", buildShorten(m))
 
-    http.ListenAndServe(PORT, nil)
+    http.ListenAndServe(addr, nil)
 }
 
