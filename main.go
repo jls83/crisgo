@@ -24,10 +24,8 @@ func getResultMapKey() resKey {
 
 func buildRedirector(m resultMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Split out the requested item, then parse & cast it to a `resKey`
         requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
-        // Read the item at the hashed address
         resultValue, hasValue := m[requestedItem]
 
         if hasValue {
