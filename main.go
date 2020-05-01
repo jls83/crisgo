@@ -73,28 +73,30 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-func main() {
+func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
     PORT_NUMBER_MIN := uint64(1)
     PORT_NUMBER_MAX := uint64(65535)
 
+    portNumberAsStr := "8080"
+
+    portNumberAsInt, err := strconv.ParseUint(rawPortNumberStr, 0, 16)
+
+    if err != nil {
+        return portNumberAsStr, fmt.Sprintf("There was an error converting %s; starting on %s", rawPortNumberStr, portNumberAsStr)
+    } else if (portNumberAsInt < PORT_NUMBER_MIN) || (portNumberAsInt >= PORT_NUMBER_MAX) {
+        return portNumberAsStr, fmt.Sprintf("Port %s is out of range; starting on %s", rawPortNumberStr, portNumberAsStr)
+    }
+    return rawPortNumberStr, fmt.Sprintf("Listening on port %s", portNumberAsStr)
+}
+
+func main() {
     // TODO: I'm sure there's more shit I can do to lock this down, but...no.
     portNumber := "8080"
     startMessage := fmt.Sprintf("Listening on port %s", portNumber)
 
+    // If the user has passed in a port number arg, check it
     if len(os.Args) >= 2 {
-        rawPortNumberStr := os.Args[1]
-        portNumberAsInt, err := strconv.ParseUint(rawPortNumberStr, 0, 16)
-
-        if err != nil {
-            startMessage = fmt.Sprintf("There was an error converting %s; starting on %s",
-                                       rawPortNumberStr, portNumber)
-        } else if (portNumberAsInt < PORT_NUMBER_MIN) || (portNumberAsInt >= PORT_NUMBER_MAX) {
-            startMessage = fmt.Sprintf("Port %s is out of range; starting on %s",
-                                       rawPortNumberStr, portNumber)
-        } else {
-            portNumber = rawPortNumberStr
-            startMessage = fmt.Sprintf("Listening on port %s", portNumber)
-        }
+        portNumber, startMessage = getPortNumberStartMessage(os.Args[1])
     }
 
     m := resultMap{}
@@ -102,6 +104,7 @@ func main() {
     // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
     http.HandleFunc("/lengthen/", buildLengthen(m))
     http.HandleFunc("/shorten/", buildShorten(m))
+
 
     fmt.Println(startMessage)
     addr := ":" + portNumber
