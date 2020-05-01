@@ -25,7 +25,6 @@ func buildLengthen(m resultMap) func(w http.ResponseWriter, r *http.Request) {
         requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
         // Read the item at the hashed address
-        // TODO: Get element from array
         // TODO: Use boolean "found" value to return the appropriate HTTP code
         resultValue, _ := m[requestedItem]
 
