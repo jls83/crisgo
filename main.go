@@ -54,6 +54,8 @@ func buildShorten(m resultMap) func(w http.ResponseWriter, r *http.Request) {
         // TODO: Append to an array if we have multiple values
         m[resultKey] = incomingValue
 
+        w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
         // TODO: Return a response with a CREATED code
         json.NewEncoder(w).Encode(map[string]interface{}{
             "value": incomingValue,
