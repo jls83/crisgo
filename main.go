@@ -6,7 +6,7 @@ import (
     "strconv"
     "net/http"
 
-    "crisgo/pkg"
+    "crisgo/handlers"
 )
 
 func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
