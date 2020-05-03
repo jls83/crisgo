@@ -84,14 +84,13 @@ func getRequestedItem(r *http.Request) ResKey {
 func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         requestedItem := getRequestedItem(r)
-
         resultValue, hasValue := m.GetValue(requestedItem)
 
         if hasValue {
-            http.Redirect(w, r, string(resultValue), 301)
-            return
+            http.Redirect(w, r, string(resultValue), http.StatusMovedPermanently)
+        } else {
+            http.NotFound(w, r)
         }
-        http.NotFound(w, r)
     }
 }
 
