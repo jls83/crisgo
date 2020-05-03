@@ -11,6 +11,11 @@ import (
     "net/http"
 )
 
+// Section: Types
+type ResKey string
+type ResValue string
+type ResMap map[ResKey]ResValue
+
 // Section: Storage
 type ResultStorage interface {
     Close() (err error)
@@ -65,10 +70,6 @@ func (s *LocalStorage) InsertValue(v ResValue) ResKey {
 }
 
 // Section: Handlers
-type ResKey string
-type ResValue string
-type ResMap map[ResKey]ResValue
-
 func getResultMapKey() ResKey {
     // FOR NOW
     s1 := rand.NewSource(time.Now().UnixNano())
