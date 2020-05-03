@@ -4,13 +4,148 @@ import (
     "fmt"
     "os"
     "strconv"
-    "net/http"
-    "math/rand"
+    "strings"
     "time"
-
-    "crisgo/handlers"
+    "encoding/json"
+    "math/rand"
+    "net/http"
 )
 
+// Section: Storage
+type ResultStorage interface {
+    Close() (err error)
+    GetResultMapKey() ResKey
+    GetValue(k ResKey) (ResValue, bool)
+    InsertValue(v ResValue) ResKey
+}
+
+type LocalStorage struct {
+    _innerStorage ResMap
+}
+
+func (s LocalStorage) Close() (err error) {
+    // Since this is just in-memory, don't actually do anything
+    return
+}
+
+func NewLocalStorage() *LocalStorage {
+    localStorage := ResMap{}
+    return &LocalStorage{localStorage}
+}
+
+func (s *LocalStorage) GetResultMapKey() ResKey {
+    // FOR NOW
+    s1 := rand.NewSource(time.Now().UnixNano())
+    r1 := rand.New(s1)
+    return ResKey(r1.Intn(100))
+}
+
+func (s *LocalStorage) GetValue(k ResKey) (ResValue, bool) {
+    // Get value in _innerStorage
+    value, found := s._innerStorage[k]
+    return value, found
+}
+
+func (s *LocalStorage) InsertValue(v ResValue) ResKey {
+    // Insert the value into _innerStorage, return the key
+    // TODO: Add some error handling; I bet shit can get weird
+    var resultKey ResKey
+    hasKey := true
+
+    // Loop until we have a good key
+    for hasKey {
+        resultKey = s.GetResultMapKey()
+        _, hasKey = s._innerStorage[resultKey]
+        fmt.Println(hasKey)
+    }
+
+    s._innerStorage[resultKey] = v
+
+    return resultKey
+}
+
+// Section: Handlers
+type ResKey string
+type ResValue string
+type ResMap map[ResKey]ResValue
+
+func getResultMapKey() ResKey {
+    // FOR NOW
+    s1 := rand.NewSource(time.Now().UnixNano())
+    r1 := rand.New(s1)
+    return ResKey(r1.Intn(100))
+}
+
+func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+    return func(w http.ResponseWriter, r *http.Request) {
+        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+
+        // resultValue, hasValue := m[requestedItem]
+        resultValue, hasValue := m.GetValue(requestedItem)
+
+        if hasValue {
+            http.Redirect(w, r, string(resultValue), 301)
+            return
+        }
+        http.NotFound(w, r)
+    }
+}
+
+func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Split out the requested item, then parse & cast it to a `ResKey`
+        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+
+        // Read the item at the hashed address
+        // TODO: Use boolean "found" value to return the appropriate HTTP code
+        // resultValue, _ := m[requestedItem]
+        resultValue, _ := m.GetValue(requestedItem)
+
+        w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "requestedItem": requestedItem,
+            "value": resultValue,
+        })
+    }
+}
+
+func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+    return func(w http.ResponseWriter, r *http.Request) {
+        // Parse form; print to console if we blow up
+        err := r.ParseForm()
+        if err != nil {
+            fmt.Println("ParseForm() err: %v", err)
+            return
+        }
+
+        // // Try generating a key for our result map. If there's already a result in place,
+        // // regenerate the key.
+        // var resultKey ResKey
+        // hasKey := true
+
+        // for hasKey {
+        //     resultKey = getResultMapKey()
+        //     _, hasKey = m[resultKey]
+        //     fmt.Println(hasKey)
+        // }
+
+        incomingValue := ResValue(r.FormValue("value"))
+        // m[resultKey] = incomingValue
+
+        resultKey := m.InsertValue(incomingValue)
+
+        w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+        // TODO: Return a response with a CREATED code
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "value": incomingValue,
+            "location": resultKey,
+        })
+    }
+}
+
+// Section: Other
 func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
     PORT_NUMBER_MIN := uint64(1)
     PORT_NUMBER_MAX := uint64(65535)
@@ -27,53 +162,7 @@ func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
     return rawPortNumberStr, fmt.Sprintf("Listening on port %s", portNumberAsStr)
 }
 
-type ResultStorage interface {
-    Close() (err error)
-    GetResultMapKey() handlers.ResKey
-    GetValue(k handlers.ResKey) (handlers.ResValue, bool)
-    InsertValue(v handlers.ResValue) handlers.ResKey
-}
-
-type localStorage struct {
-    _innerStorage handlers.ResMap
-}
-
-func (s localStorage) Close() (err error) {
-    // Since this is just in-memory, don't actually do anything
-    return
-}
-
-func (s localStorage) GetResultMapKey() handlers.ResKey {
-    // FOR NOW
-    s1 := rand.NewSource(time.Now().UnixNano())
-    r1 := rand.New(s1)
-    return handlers.ResKey(r1.Intn(100))
-}
-
-func (s localStorage) GetValue(k handlers.ResKey) (handlers.ResValue, bool) {
-    // Get value in _innerStorage
-    value, found := s._innerStorage[k]
-    return value, found
-}
-
-func (s localStorage) InsertValue(v handlers.ResValue) handlers.ResKey {
-    // Insert the value into _innerStorage, return the key
-    // TODO: Add some error handling; I bet shit can get weird
-    var resultKey handlers.ResKey
-    hasKey := true
-
-    // Loop until we have a good key
-    for hasKey {
-        resultKey = s.GetResultMapKey()
-        _, hasKey = s._innerStorage[resultKey]
-        fmt.Println(hasKey)
-    }
-
-    s._innerStorage[resultKey] = v
-
-    return resultKey
-}
-
+// Main
 func main() {
     // TODO: I'm sure there's more shit I can do to lock this down, but...no.
     portNumber := "8080"
@@ -84,12 +173,13 @@ func main() {
         portNumber, startMessage = getPortNumberStartMessage(os.Args[1])
     }
 
-    m := handlers.ResMap{}
+    m := NewLocalStorage()
+    defer m.Close()
 
     // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
-    http.HandleFunc("/lengthen/", handlers.BuildLengthen(m))
-    http.HandleFunc("/shorten/", handlers.BuildShorten(m))
-    http.HandleFunc("/redirector/", handlers.BuildRedirector(m))
+    http.HandleFunc("/lengthen/", BuildLengthen(m))
+    http.HandleFunc("/shorten/", BuildShorten(m))
+    http.HandleFunc("/redirector/", BuildRedirector(m))
 
     fmt.Println(startMessage)
     addr := ":" + portNumber
