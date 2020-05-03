@@ -5,6 +5,8 @@ import (
     "os"
     "strconv"
     "net/http"
+    "math/rand"
+    "time"
 
     "crisgo/handlers"
 )
@@ -30,6 +32,46 @@ type ResultStorage interface {
     GetResultMapKey() handlers.ResKey
     GetValue(k handlers.ResKey) (handlers.ResValue, bool)
     InsertValue(v handlers.ResValue) handlers.ResKey
+}
+
+type localStorage struct {
+    _innerStorage handlers.ResMap
+}
+
+func (s localStorage) Close() (err error) {
+    // Since this is just in-memory, don't actually do anything
+    return
+}
+
+func (s localStorage) GetResultMapKey() handlers.ResKey {
+    // FOR NOW
+    s1 := rand.NewSource(time.Now().UnixNano())
+    r1 := rand.New(s1)
+    return handlers.ResKey(r1.Intn(100))
+}
+
+func (s localStorage) GetValue(k handlers.ResKey) (handlers.ResValue, bool) {
+    // Get value in _innerStorage
+    value, found := s._innerStorage[k]
+    return value, found
+}
+
+func (s localStorage) InsertValue(v handlers.ResValue) handlers.ResKey {
+    // Insert the value into _innerStorage, return the key
+    // TODO: Add some error handling; I bet shit can get weird
+    var resultKey handlers.ResKey
+    hasKey := true
+
+    // Loop until we have a good key
+    for hasKey {
+        resultKey = s.GetResultMapKey()
+        _, hasKey = s._innerStorage[resultKey]
+        fmt.Println(hasKey)
+    }
+
+    s._innerStorage[resultKey] = v
+
+    return resultKey
 }
 
 func main() {
