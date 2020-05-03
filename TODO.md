@@ -14,6 +14,8 @@
 2. Add new API types
     - "Shorten" input
     - "Lengthen" output
+3. Figure out package imports, my god.
+4. Add new db structs
 
 ## To Consider
 * How should we account for "creation date"/"last accessed"/etc?
