@@ -77,11 +77,14 @@ func getResultMapKey() ResKey {
     return ResKey(r1.Intn(100))
 }
 
+func getRequestedItem(r *http.Request) ResKey {
+    return ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+}
+
 func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+        requestedItem := getRequestedItem(r)
 
-        // resultValue, hasValue := m[requestedItem]
         resultValue, hasValue := m.GetValue(requestedItem)
 
         if hasValue {
@@ -94,12 +97,10 @@ func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Reques
 
 func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Split out the requested item, then parse & cast it to a `ResKey`
-        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+        requestedItem := getRequestedItem(r)
 
         // Read the item at the hashed address
         // TODO: Use boolean "found" value to return the appropriate HTTP code
-        // resultValue, _ := m[requestedItem]
         resultValue, _ := m.GetValue(requestedItem)
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -120,20 +121,7 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
             return
         }
 
-        // // Try generating a key for our result map. If there's already a result in place,
-        // // regenerate the key.
-        // var resultKey ResKey
-        // hasKey := true
-
-        // for hasKey {
-        //     resultKey = getResultMapKey()
-        //     _, hasKey = m[resultKey]
-        //     fmt.Println(hasKey)
-        // }
-
         incomingValue := ResValue(r.FormValue("value"))
-        // m[resultKey] = incomingValue
-
         resultKey := m.InsertValue(incomingValue)
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
