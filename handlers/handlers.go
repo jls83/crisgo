@@ -9,20 +9,20 @@ import (
     "math/rand"
 )
 
-type resKey string
-type resValue string
-type ResMap map[resKey]resValue
+type ResKey string
+type ResValue string
+type ResMap map[ResKey]ResValue
 
-func getResultMapKey() resKey {
+func getResultMapKey() ResKey {
     // FOR NOW
     s1 := rand.NewSource(time.Now().UnixNano())
     r1 := rand.New(s1)
-    return resKey(r1.Intn(100))
+    return ResKey(r1.Intn(100))
 }
 
 func BuildRedirector(m ResMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
         resultValue, hasValue := m[requestedItem]
 
@@ -36,8 +36,8 @@ func BuildRedirector(m ResMap) func(w http.ResponseWriter, r *http.Request) {
 
 func BuildLengthen(m ResMap) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
-        // Split out the requested item, then parse & cast it to a `resKey`
-        requestedItem := resKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+        // Split out the requested item, then parse & cast it to a `ResKey`
+        requestedItem := ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 
         // Read the item at the hashed address
         // TODO: Use boolean "found" value to return the appropriate HTTP code
@@ -63,7 +63,7 @@ func BuildShorten(m ResMap) func(w http.ResponseWriter, r *http.Request) {
 
         // Try generating a key for our result map. If there's already a result in place,
         // regenerate the key.
-        var resultKey resKey
+        var resultKey ResKey
         hasKey := true
 
         for hasKey {
@@ -72,7 +72,7 @@ func BuildShorten(m ResMap) func(w http.ResponseWriter, r *http.Request) {
             fmt.Println(hasKey)
         }
 
-        incomingValue := resValue(r.FormValue("value"))
+        incomingValue := ResValue(r.FormValue("value"))
         m[resultKey] = incomingValue
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")

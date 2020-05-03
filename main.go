@@ -25,6 +25,13 @@ func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
     return rawPortNumberStr, fmt.Sprintf("Listening on port %s", portNumberAsStr)
 }
 
+type ResultStorage interface {
+    Close() (err error)
+    GetResultMapKey() handlers.ResKey
+    GetValue(k handlers.ResKey) (handlers.ResValue, bool)
+    InsertValue(v handlers.ResValue) handlers.ResKey
+}
+
 func main() {
     // TODO: I'm sure there's more shit I can do to lock this down, but...no.
     portNumber := "8080"
