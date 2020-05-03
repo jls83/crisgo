@@ -118,6 +118,8 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
         err := r.ParseForm()
         if err != nil {
             fmt.Println("ParseForm() err: %v", err)
+            w.WriteHeader(http.StatusBadRequest)
+            w.Write([]byte("There was an error parsing your link shortening request."))
             return
         }
 
