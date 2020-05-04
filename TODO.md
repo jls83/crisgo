@@ -4,6 +4,7 @@
     - Redis-backed
 3. Figure out package imports, my god.
 4. Add new db structs
+5. Add (async!) event hooks to the listener methods
 
 ## To Consider
 * How should we account for "creation date"/"last accessed"/etc?
