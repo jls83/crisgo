@@ -52,7 +52,7 @@ func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
     return value, found
 }
 
-func (s LocalStorage) InsertValue(v ResValue) ResKey {
+func (s *LocalStorage) InsertValue(v ResValue) ResKey {
     // Insert the value into _innerStorage, return the key
     // TODO: Add some error handling; I bet shit can get weird
     var resultKey ResKey
