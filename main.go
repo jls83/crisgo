@@ -84,6 +84,10 @@ func getRequestedItem(r *http.Request) ResKey {
 
 func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != http.MethodGet {
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
         requestedItem := getRequestedItem(r)
         resultValue, hasValue := m.GetValue(requestedItem)
 
@@ -97,6 +101,10 @@ func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Reques
 
 func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != http.MethodGet {
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
         requestedItem := getRequestedItem(r)
 
         // Read the item at the hashed address
@@ -114,6 +122,10 @@ func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request)
 
 func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != http.MethodPost {
+            w.WriteHeader(http.StatusBadRequest)
+            return
+        }
         // Parse form; print to console if we blow up
         err := r.ParseForm()
         if err != nil {
