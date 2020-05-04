@@ -22,6 +22,7 @@ type ResultStorage interface {
     GetResultMapKey() ResKey
     GetValue(k ResKey) (ResValue, bool)
     InsertValue(v ResValue) ResKey
+    // TODO: Add explicit `SetValue` method & endpoint for testing
 }
 
 type LocalStorage struct {
@@ -171,6 +172,7 @@ func main() {
     http.HandleFunc("/shorten/", BuildShorten(m))
     http.HandleFunc("/redirector/", BuildRedirector(m))
 
+    // TODO: Put this out via a logger instead
     fmt.Println(startMessage)
     addr := ":" + portNumber
     http.ListenAndServe(addr, nil)
