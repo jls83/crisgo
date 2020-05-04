@@ -1,8 +1,10 @@
 package main
 
 import (
+    "errors"
+    "flag"
     "fmt"
-    "os"
+    // "os"
     "strconv"
     "strings"
     "time"
@@ -155,43 +157,40 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
 }
 
 // Section: Other
-func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
-    PORT_NUMBER_MIN := uint64(1)
-    PORT_NUMBER_MAX := uint64(65535)
+func checkPortNumber(portNumberPtr *int) (*int, error) {
+    PORT_NUMBER_MIN := int(1)
+    PORT_NUMBER_MAX := int(65535)
 
-    portNumberAsStr := "8080"
-
-    portNumberAsInt, err := strconv.ParseUint(rawPortNumberStr, 0, 16)
-
-    if err != nil {
-        return portNumberAsStr, fmt.Sprintf("There was an error converting %s; starting on %s", rawPortNumberStr, portNumberAsStr)
-    } else if (portNumberAsInt < PORT_NUMBER_MIN) || (portNumberAsInt >= PORT_NUMBER_MAX) {
-        return portNumberAsStr, fmt.Sprintf("Port %s is out of range; starting on %s", rawPortNumberStr, portNumberAsStr)
+    if (*portNumberPtr < PORT_NUMBER_MIN) || (*portNumberPtr >= PORT_NUMBER_MAX) {
+        return portNumberPtr, errors.New(fmt.Sprintf("Port %s is out of range", &portNumberPtr))
     }
-    return rawPortNumberStr, fmt.Sprintf("Listening on port %s", rawPortNumberStr)
+
+    return portNumberPtr, nil
 }
 
 // Main
 func main() {
-    // TODO: I'm sure there's more shit I can do to lock this down, but...no.
-    portNumber := "8080"
-    startMessage := fmt.Sprintf("Listening on port %s", portNumber)
+    portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
+    flag.Parse()
 
-    // If the user has passed in a port number arg, check it
-    if len(os.Args) >= 2 {
-        portNumber, startMessage = getPortNumberStartMessage(os.Args[1])
+    var portNumber string
+    portNumberPtr, portErr := checkPortNumber(portNumberPtr)
+    if portErr != nil {
+        portNumber = "8080"
+    } else {
+        portNumber = strconv.Itoa(*portNumberPtr)
     }
 
     m := NewLocalStorage()
     defer m.Close()
 
-    // Using the `buildFoo` methods allows us to dynamically inject the `resultMap`
+    // Using the `buildFoo` methods allows us to dynamically inject the ResultStorage instance
     http.HandleFunc("/lengthen/", BuildLengthen(m))
     http.HandleFunc("/shorten/", BuildShorten(m))
     http.HandleFunc("/redirector/", BuildRedirector(m))
 
     // TODO: Put this out via a logger instead
-    fmt.Println(startMessage)
+    fmt.Println("Listening on port %s", portNumber)
     addr := ":" + portNumber
     http.ListenAndServe(addr, nil)
 }
