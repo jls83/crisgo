@@ -168,7 +168,7 @@ func getPortNumberStartMessage(rawPortNumberStr string) (string, string) {
     } else if (portNumberAsInt < PORT_NUMBER_MIN) || (portNumberAsInt >= PORT_NUMBER_MAX) {
         return portNumberAsStr, fmt.Sprintf("Port %s is out of range; starting on %s", rawPortNumberStr, portNumberAsStr)
     }
-    return rawPortNumberStr, fmt.Sprintf("Listening on port %s", portNumberAsStr)
+    return rawPortNumberStr, fmt.Sprintf("Listening on port %s", rawPortNumberStr)
 }
 
 // Main
