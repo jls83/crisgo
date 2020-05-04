@@ -29,14 +29,14 @@ type LocalStorage struct {
     _innerStorage ResMap
 }
 
-func (s LocalStorage) Close() (err error) {
-    // Since this is just in-memory, don't actually do anything
-    return
-}
-
 func NewLocalStorage() *LocalStorage {
     localStorage := ResMap{}
     return &LocalStorage{localStorage}
+}
+
+func (s LocalStorage) Close() (err error) {
+    // Since this is just in-memory, don't actually do anything
+    return
 }
 
 func (s *LocalStorage) GetResultMapKey() ResKey {
@@ -79,13 +79,6 @@ type LengthenResult struct {
 type ShortenResult struct {
     Location    ResKey      `json:"location"`
     Value       ResValue    `json:"value"`
-}
-
-func getResultMapKey() ResKey {
-    // FOR NOW
-    s1 := rand.NewSource(time.Now().UnixNano())
-    r1 := rand.New(s1)
-    return ResKey(r1.Intn(100))
 }
 
 func getRequestedItem(r *http.Request) ResKey {
