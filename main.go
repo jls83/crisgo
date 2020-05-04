@@ -190,7 +190,7 @@ func main() {
     http.HandleFunc("/redirector/", BuildRedirector(m))
 
     // TODO: Put this out via a logger instead
-    fmt.Println("Listening on port %s", portNumber)
+    fmt.Println("Listening on port", portNumber)
     addr := ":" + portNumber
     http.ListenAndServe(addr, nil)
 }
