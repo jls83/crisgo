@@ -39,20 +39,20 @@ func (s LocalStorage) Close() (err error) {
     return
 }
 
-func (s *LocalStorage) GetResultMapKey() ResKey {
+func (s LocalStorage) GetResultMapKey() ResKey {
     // FOR NOW
     s1 := rand.NewSource(time.Now().UnixNano())
     r1 := rand.New(s1)
     return ResKey(r1.Intn(100))
 }
 
-func (s *LocalStorage) GetValue(k ResKey) (ResValue, bool) {
+func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
     // Get value in _innerStorage
     value, found := s._innerStorage[k]
     return value, found
 }
 
-func (s *LocalStorage) InsertValue(v ResValue) ResKey {
+func (s LocalStorage) InsertValue(v ResValue) ResKey {
     // Insert the value into _innerStorage, return the key
     // TODO: Add some error handling; I bet shit can get weird
     var resultKey ResKey
