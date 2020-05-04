@@ -71,6 +71,16 @@ func (s *LocalStorage) InsertValue(v ResValue) ResKey {
 }
 
 // Section: Handlers
+type LengthenResult struct {
+    RequestedItem   ResKey      `json:"requestedItem"`
+    Value           ResValue    `json:"value"`
+}
+
+type ShortenResult struct {
+    Location    ResKey      `json:"location"`
+    Value       ResValue    `json:"value"`
+}
+
 func getResultMapKey() ResKey {
     // FOR NOW
     s1 := rand.NewSource(time.Now().UnixNano())
@@ -113,10 +123,11 @@ func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request)
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "requestedItem": requestedItem,
-            "value": resultValue,
-        })
+        result := LengthenResult{
+            RequestedItem: requestedItem,
+            Value: resultValue,
+        }
+        json.NewEncoder(w).Encode(result)
     }
 }
 
@@ -138,13 +149,15 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
         incomingValue := ResValue(r.FormValue("value"))
         resultKey := m.InsertValue(incomingValue)
 
+        result := ShortenResult{
+            Location: resultKey,
+            Value: incomingValue,
+        }
+
         w.WriteHeader(http.StatusCreated)
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-        json.NewEncoder(w).Encode(map[string]interface{}{
-            "value": incomingValue,
-            "location": resultKey,
-        })
+        json.NewEncoder(w).Encode(result)
     }
 }
 
