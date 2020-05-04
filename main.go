@@ -125,9 +125,9 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
         incomingValue := ResValue(r.FormValue("value"))
         resultKey := m.InsertValue(incomingValue)
 
+        w.WriteHeader(http.StatusCreated)
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-        // TODO: Return a response with a CREATED code
         json.NewEncoder(w).Encode(map[string]interface{}{
             "value": incomingValue,
             "location": resultKey,
