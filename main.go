@@ -4,7 +4,6 @@ import (
     "errors"
     "flag"
     "fmt"
-    // "os"
     "strconv"
     "strings"
     "time"
@@ -49,18 +48,16 @@ func (s LocalStorage) GetResultMapKey() ResKey {
 }
 
 func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
-    // Get value in _innerStorage
     value, found := s._innerStorage[k]
     return value, found
 }
 
 func (s *LocalStorage) InsertValue(v ResValue) ResKey {
-    // Insert the value into _innerStorage, return the key
     // TODO: Add some error handling; I bet shit can get weird
     var resultKey ResKey
     hasKey := true
 
-    // Loop until we have a good key
+    // Loop until we have a key not already in the map
     for hasKey {
         resultKey = s.GetResultMapKey()
         _, hasKey = s._innerStorage[resultKey]
@@ -112,8 +109,6 @@ func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request)
         }
         requestedItem := getRequestedItem(r)
 
-        // Read the item at the hashed address
-        // TODO: Use boolean "found" value to return the appropriate HTTP code
         resultValue, _ := m.GetValue(requestedItem)
 
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
