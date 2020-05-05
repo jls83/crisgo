@@ -40,11 +40,25 @@ func (s LocalStorage) Close() (err error) {
     return
 }
 
+// TODO: God help me for using global variables
+// This was cribbed from https://www.calhoun.io/creating-random-strings-in-go/
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+                "0123456789"
+
+var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func StringWithCharset(length int, charset string) string {
+    byteArray := make([]byte, length)
+    for i:= range byteArray {
+        byteArray[i] = charset[seededRand.Intn(len(charset))]
+    }
+
+    return string(byteArray)
+}
+
 func (s LocalStorage) GetResultMapKey() ResKey {
-    // FOR NOW
-    s1 := rand.NewSource(time.Now().UnixNano())
-    r1 := rand.New(s1)
-    return ResKey(r1.Intn(100))
+    return ResKey(StringWithCharset(5, charset))
 }
 
 func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
