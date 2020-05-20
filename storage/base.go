@@ -1,6 +1,10 @@
 package storage
 
 import (
+    "fmt"
+    "time"
+    "math/rand"
+
     "github.com/jls83/crisgo/types"
 )
 

@@ -6,85 +6,12 @@ import (
     "fmt"
     "strconv"
     "strings"
-    "time"
     "encoding/json"
-    "math/rand"
     "net/http"
 
     "github.com/jls83/crisgo/storage"
     "github.com/jls83/crisgo/types"
 )
-
-// Section: Types
-// type ResKey string
-// type ResValue string
-// type ResMap map[ResKey]ResValue
-
-// Section: Storage
-// type ResultStorage interface {
-//     Close() (err error)
-//     GetResultMapKey() ResKey
-//     GetValue(k ResKey) (ResValue, bool)
-//     InsertValue(v ResValue) ResKey
-//     // TODO: Add explicit `SetValue` method & endpoint for testing
-// }
-
-// type LocalStorage struct {
-//     _innerStorage ResMap
-// }
-
-// func NewLocalStorage() *LocalStorage {
-//     localStorage := ResMap{}
-//     return &LocalStorage{localStorage}
-// }
-
-// func (s LocalStorage) Close() (err error) {
-//     // Since this is just in-memory, don't actually do anything
-//     return
-// }
-
-// // TODO: God help me for using global variables
-// // This was cribbed from https://www.calhoun.io/creating-random-strings-in-go/
-// const charset = "abcdefghijklmnopqrstuvwxyz" +
-//                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-//                 "0123456789"
-
-// var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
-
-// func StringWithCharset(length int, charset string) string {
-//     byteArray := make([]byte, length)
-//     for i:= range byteArray {
-//         byteArray[i] = charset[seededRand.Intn(len(charset))]
-//     }
-
-//     return string(byteArray)
-// }
-
-// func (s LocalStorage) GetResultMapKey() ResKey {
-//     return ResKey(StringWithCharset(5, charset))
-// }
-
-// func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
-//     value, found := s._innerStorage[k]
-//     return value, found
-// }
-
-// func (s *LocalStorage) InsertValue(v ResValue) ResKey {
-//     // TODO: Add some error handling; I bet shit can get weird
-//     var resultKey ResKey
-//     hasKey := true
-
-//     // Loop until we have a key not already in the map
-//     for hasKey {
-//         resultKey = s.GetResultMapKey()
-//         _, hasKey = s._innerStorage[resultKey]
-//         fmt.Println(hasKey)
-//     }
-
-//     s._innerStorage[resultKey] = v
-
-//     return resultKey
-// }
 
 // Section: Handlers
 type LengthenResult struct {
@@ -101,7 +28,7 @@ func getRequestedItem(r *http.Request) types.ResKey {
     return types.ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 }
 
-func BuildRedirector(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildRedirector(m storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             w.WriteHeader(http.StatusBadRequest)
@@ -118,7 +45,7 @@ func BuildRedirector(m *storage.ResultStorage) func(w http.ResponseWriter, r *ht
     }
 }
 
-func BuildLengthen(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildLengthen(m storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             w.WriteHeader(http.StatusBadRequest)
@@ -138,7 +65,7 @@ func BuildLengthen(m *storage.ResultStorage) func(w http.ResponseWriter, r *http
     }
 }
 
-func BuildShorten(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildShorten(m storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodPost {
             w.WriteHeader(http.StatusBadRequest)
