@@ -10,95 +10,98 @@ import (
     "encoding/json"
     "math/rand"
     "net/http"
+
+    "github.com/jls83/crisgo/storage"
+    "github.com/jls83/crisgo/types"
 )
 
 // Section: Types
-type ResKey string
-type ResValue string
-type ResMap map[ResKey]ResValue
+// type ResKey string
+// type ResValue string
+// type ResMap map[ResKey]ResValue
 
 // Section: Storage
-type ResultStorage interface {
-    Close() (err error)
-    GetResultMapKey() ResKey
-    GetValue(k ResKey) (ResValue, bool)
-    InsertValue(v ResValue) ResKey
-    // TODO: Add explicit `SetValue` method & endpoint for testing
-}
+// type ResultStorage interface {
+//     Close() (err error)
+//     GetResultMapKey() ResKey
+//     GetValue(k ResKey) (ResValue, bool)
+//     InsertValue(v ResValue) ResKey
+//     // TODO: Add explicit `SetValue` method & endpoint for testing
+// }
 
-type LocalStorage struct {
-    _innerStorage ResMap
-}
+// type LocalStorage struct {
+//     _innerStorage ResMap
+// }
 
-func NewLocalStorage() *LocalStorage {
-    localStorage := ResMap{}
-    return &LocalStorage{localStorage}
-}
+// func NewLocalStorage() *LocalStorage {
+//     localStorage := ResMap{}
+//     return &LocalStorage{localStorage}
+// }
 
-func (s LocalStorage) Close() (err error) {
-    // Since this is just in-memory, don't actually do anything
-    return
-}
+// func (s LocalStorage) Close() (err error) {
+//     // Since this is just in-memory, don't actually do anything
+//     return
+// }
 
-// TODO: God help me for using global variables
-// This was cribbed from https://www.calhoun.io/creating-random-strings-in-go/
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-                "0123456789"
+// // TODO: God help me for using global variables
+// // This was cribbed from https://www.calhoun.io/creating-random-strings-in-go/
+// const charset = "abcdefghijklmnopqrstuvwxyz" +
+//                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+//                 "0123456789"
 
-var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+// var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func StringWithCharset(length int, charset string) string {
-    byteArray := make([]byte, length)
-    for i:= range byteArray {
-        byteArray[i] = charset[seededRand.Intn(len(charset))]
-    }
+// func StringWithCharset(length int, charset string) string {
+//     byteArray := make([]byte, length)
+//     for i:= range byteArray {
+//         byteArray[i] = charset[seededRand.Intn(len(charset))]
+//     }
 
-    return string(byteArray)
-}
+//     return string(byteArray)
+// }
 
-func (s LocalStorage) GetResultMapKey() ResKey {
-    return ResKey(StringWithCharset(5, charset))
-}
+// func (s LocalStorage) GetResultMapKey() ResKey {
+//     return ResKey(StringWithCharset(5, charset))
+// }
 
-func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
-    value, found := s._innerStorage[k]
-    return value, found
-}
+// func (s LocalStorage) GetValue(k ResKey) (ResValue, bool) {
+//     value, found := s._innerStorage[k]
+//     return value, found
+// }
 
-func (s *LocalStorage) InsertValue(v ResValue) ResKey {
-    // TODO: Add some error handling; I bet shit can get weird
-    var resultKey ResKey
-    hasKey := true
+// func (s *LocalStorage) InsertValue(v ResValue) ResKey {
+//     // TODO: Add some error handling; I bet shit can get weird
+//     var resultKey ResKey
+//     hasKey := true
 
-    // Loop until we have a key not already in the map
-    for hasKey {
-        resultKey = s.GetResultMapKey()
-        _, hasKey = s._innerStorage[resultKey]
-        fmt.Println(hasKey)
-    }
+//     // Loop until we have a key not already in the map
+//     for hasKey {
+//         resultKey = s.GetResultMapKey()
+//         _, hasKey = s._innerStorage[resultKey]
+//         fmt.Println(hasKey)
+//     }
 
-    s._innerStorage[resultKey] = v
+//     s._innerStorage[resultKey] = v
 
-    return resultKey
-}
+//     return resultKey
+// }
 
 // Section: Handlers
 type LengthenResult struct {
-    RequestedItem   ResKey      `json:"requestedItem"`
-    Value           ResValue    `json:"value"`
+    RequestedItem   types.ResKey      `json:"requestedItem"`
+    Value           types.ResValue    `json:"value"`
 }
 
 type ShortenResult struct {
-    Location    ResKey      `json:"location"`
-    Value       ResValue    `json:"value"`
+    Location    types.ResKey      `json:"location"`
+    Value       types.ResValue    `json:"value"`
 }
 
-func getRequestedItem(r *http.Request) ResKey {
-    return ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
+func getRequestedItem(r *http.Request) types.ResKey {
+    return types.ResKey(strings.SplitN(r.URL.Path, "/", 3)[2])
 }
 
-func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildRedirector(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             w.WriteHeader(http.StatusBadRequest)
@@ -115,7 +118,7 @@ func BuildRedirector(m *LocalStorage) func(w http.ResponseWriter, r *http.Reques
     }
 }
 
-func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildLengthen(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodGet {
             w.WriteHeader(http.StatusBadRequest)
@@ -135,7 +138,7 @@ func BuildLengthen(m *LocalStorage) func(w http.ResponseWriter, r *http.Request)
     }
 }
 
-func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) {
+func BuildShorten(m *storage.ResultStorage) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         if r.Method != http.MethodPost {
             w.WriteHeader(http.StatusBadRequest)
@@ -150,7 +153,7 @@ func BuildShorten(m *LocalStorage) func(w http.ResponseWriter, r *http.Request) 
             return
         }
 
-        incomingValue := ResValue(r.FormValue("value"))
+        incomingValue := types.ResValue(r.FormValue("value"))
         resultKey := m.InsertValue(incomingValue)
 
         result := ShortenResult{
@@ -190,7 +193,7 @@ func main() {
         portNumber = strconv.Itoa(*portNumberPtr)
     }
 
-    m := NewLocalStorage()
+    m := storage.NewLocalStorage()
     defer m.Close()
 
     // Using the `buildFoo` methods allows us to dynamically inject the ResultStorage instance
