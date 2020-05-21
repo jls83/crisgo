@@ -27,3 +27,6 @@
 
 # I compile local binaries here
 bin/
+
+# We don't need local DB files
+*.db
