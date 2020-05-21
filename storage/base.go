@@ -3,7 +3,10 @@ package storage
 import (
     "fmt"
     "time"
+    "database/sql"
     "math/rand"
+
+    _ "github.com/mattn/go-sqlite3"
 
     "github.com/jls83/crisgo/types"
 )
@@ -17,21 +20,7 @@ type ResultStorage interface {
     // TODO: Add explicit `SetValue` method & endpoint for testing
 }
 
-type LocalStorage struct {
-    _innerStorage types.ResMap
-}
-
-func NewLocalStorage() *LocalStorage {
-    localStorage := types.ResMap{}
-    return &LocalStorage{localStorage}
-}
-
-func (s LocalStorage) Close() (err error) {
-    // Since this is just in-memory, don't actually do anything
-    return
-}
-
-// TODO: God help me for using global variables
+// Section: Helper Methods
 // This was cribbed from https://www.calhoun.io/creating-random-strings-in-go/
 const charset = "abcdefghijklmnopqrstuvwxyz" +
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
@@ -46,6 +35,22 @@ func StringWithCharset(length int, charset string) string {
     }
 
     return string(byteArray)
+}
+
+
+// Section: LocalStorage
+type LocalStorage struct {
+    _innerStorage types.ResMap
+}
+
+func NewLocalStorage() *LocalStorage {
+    localStorage := types.ResMap{}
+    return &LocalStorage{localStorage}
+}
+
+func (s LocalStorage) Close() (err error) {
+    // Since this is just in-memory, don't actually do anything
+    return
 }
 
 func (s LocalStorage) GetResultMapKey() types.ResKey {
@@ -73,3 +78,99 @@ func (s *LocalStorage) InsertValue(v types.ResValue) types.ResKey {
 
     return resultKey
 }
+
+// Section: SqliteStorage
+const SQLITE_FILE_PATH = "~/crisgo.db"
+
+func checkErr(err error) {
+    if err != nil {
+        panic(err)
+    }
+}
+
+type SqliteStorage struct {
+    _db *sql.DB
+    databasePath string
+    tableName string
+}
+
+func NewSqliteStorage(databasePath string, tableName string) *SqliteStorage {
+    db, err := sql.Open("sqlite3", databasePath)
+    checkErr(err)
+
+    sqliteStorage := SqliteStorage{db, databasePath, tableName}
+    createStr := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s`" +
+                             "(`id` INTEGER PRIMARY KEY AUTOINCREMENT," +
+                             "`url` VARCHAR(1200)," +
+                             "`shorten_key` VARCHAR(1200);", tableName)
+
+    createStatement, err := sqliteStorage._db.Prepare(createStr)
+
+    _, err = createStatement.Exec()
+    checkErr(err)
+
+    return &sqliteStorage
+}
+
+func (s *SqliteStorage) Close() (err error) {
+    return s._db.Close()
+}
+
+func (s *SqliteStorage) GetResultMapKey() types.ResKey {
+    return types.ResKey(StringWithCharset(5, charset))
+}
+
+func (s *SqliteStorage) GetValue(k types.ResKey) (types.ResValue, bool) {
+    selectStr := fmt.Sprintf("SELECT url FROM %s WHERE %s.shorten_key = %s LIMIT 1", s.tableName, s.tableName, k)
+    selectRows, err := s._db.Query(selectStr)
+
+    if err != nil {
+        return types.ResValue(""), false
+    }
+
+    var resultValue types.ResValue
+
+    for selectRows.Next() {
+        err = selectRows.Scan(&resultValue)
+        if err != nil {
+            return types.ResValue(""), false
+        }
+    }
+
+    return resultValue, true
+}
+
+func (s *SqliteStorage) InsertValue(v types.ResValue) types.ResKey {
+    var resultKey types.ResKey
+    hasKey := true
+
+    // Loop until we have a key not already in the db
+    for hasKey {
+        resultKey = s.GetResultMapKey()
+        selectStr := fmt.Sprintf("SELECT COUNT(*) FROM %s " +
+                                 "WHERE %s.shorten_key = %s LIMIT 1;", s.tableName, s.tableName, resultKey)
+        selectRows, err := s._db.Query(selectStr)
+
+        var resultKeyCount int
+        for selectRows.Next() {
+            err = selectRows.Scan(&resultKeyCount)
+            checkErr(err)
+        }
+        if (resultKeyCount < 1) {
+            hasKey = false
+        }
+    }
+
+    insertStr := fmt.Sprintf("INSERT INTO %s (url, shorten_key)" +
+                             "VALUES (?, ?)", s.tableName)
+
+    insertStatement, err := s._db.Prepare(insertStr)
+    checkErr(err)
+
+    _, err = insertStatement.Exec(v, resultKey)
+    checkErr(err)
+
+    return resultKey
+}
+
+
