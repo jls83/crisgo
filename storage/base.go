@@ -80,7 +80,8 @@ func (s *LocalStorage) InsertValue(v types.ResValue) types.ResKey {
 }
 
 // Section: SqliteStorage
-const SQLITE_FILE_PATH = "~/crisgo.db"
+const SQLITE_FILE_PATH = "crisgo.db"
+const SQLITE_TABLE_NAME = "shortened_urls"
 
 func checkErr(err error) {
     if err != nil {
@@ -99,17 +100,22 @@ func NewSqliteStorage(databasePath string, tableName string) *SqliteStorage {
     checkErr(err)
 
     sqliteStorage := SqliteStorage{db, databasePath, tableName}
+
+    return &sqliteStorage
+}
+
+func (s *SqliteStorage) CreateTable() error {
     createStr := fmt.Sprintf("CREATE TABLE IF NOT EXISTS `%s`" +
                              "(`id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                              "`url` VARCHAR(1200)," +
-                             "`shorten_key` VARCHAR(1200);", tableName)
+                             "`shorten_key` VARCHAR(1200));", s.tableName)
 
-    createStatement, err := sqliteStorage._db.Prepare(createStr)
-
-    _, err = createStatement.Exec()
+    createStatement, err := s._db.Prepare(createStr)
     checkErr(err)
 
-    return &sqliteStorage
+    _, err = createStatement.Exec()
+
+    return err
 }
 
 func (s *SqliteStorage) Close() (err error) {
@@ -150,11 +156,13 @@ func (s *SqliteStorage) InsertValue(v types.ResValue) types.ResKey {
         selectStr := fmt.Sprintf("SELECT COUNT(*) FROM %s " +
                                  "WHERE %s.shorten_key = %s LIMIT 1;", s.tableName, s.tableName, resultKey)
         selectRows, err := s._db.Query(selectStr)
+        checkErr(err)
 
         var resultKeyCount int
         for selectRows.Next() {
-            err = selectRows.Scan(&resultKeyCount)
-            checkErr(err)
+            // err = selectRows.Scan(&resultKeyCount)
+            // checkErr(err)
+            selectRows.Scan(&resultKeyCount)
         }
         if (resultKeyCount < 1) {
             hasKey = false

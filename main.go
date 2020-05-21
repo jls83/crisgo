@@ -120,8 +120,14 @@ func main() {
         portNumber = strconv.Itoa(*portNumberPtr)
     }
 
-    m := storage.NewLocalStorage()
+    // m := storage.NewLocalStorage()
+    m := storage.NewSqliteStorage(storage.SQLITE_FILE_PATH, storage.SQLITE_TABLE_NAME)
     defer m.Close()
+
+    err := m.CreateTable()
+    if err != nil {
+        panic(err)
+    }
 
     // Using the `buildFoo` methods allows us to dynamically inject the ResultStorage instance
     http.HandleFunc("/lengthen/", BuildLengthen(m))
