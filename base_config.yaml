@@ -1,0 +1,3 @@
+tablename: shortened_urls
+database_file_path: crisgo.db
+port_number: 8080

@@ -9,9 +9,9 @@ import (
 )
 
 type CrisgoConfig struct {
-    Tablename           string
-    DatabaseFilePath    string
-    PortNumber          int
+    Tablename           string  `yaml:"tablename"`
+    DatabaseFilePath    string  `yaml:"database_file_path"`
+    PortNumber          int     `yaml:"port_number"`
 }
 
 
