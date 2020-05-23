@@ -15,4 +15,4 @@ curl -d "value=something" http://localhost:8080/shorten/
 curl http://localhost:8080/lengthen/{INSERT_RESULT_HERE}
 ```
 
-You can also hit the `redirect` endpoint in a browser like so: `http://localhost:8080/redirect/{INSERT_RESULT_HERE}`
+You can also hit the `redirector` endpoint in a browser like so: `http://localhost:8080/redirector/{INSERT_RESULT_HERE}`
