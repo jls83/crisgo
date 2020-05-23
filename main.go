@@ -110,6 +110,12 @@ func checkPortNumber(portNumberPtr *int) (*int, error) {
 
 // Main
 func main() {
+    configFile := "base_config.yaml"
+
+    config := config.NewCrisgoConfig(configFile)
+
+    fmt.Printf("--- config:\n%v\n\n", config)
+
     portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
     flag.Parse()
 

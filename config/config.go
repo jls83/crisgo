@@ -1,6 +1,7 @@
 package config
 
 import (
+    "fmt"
     "log"
     "io/ioutil"
 
@@ -15,12 +16,16 @@ type CrisgoConfig struct {
 
 
 func NewCrisgoConfig(filepath string) *CrisgoConfig {
+    config := CrisgoConfig{}
+
     fileContents, err := ioutil.ReadFile(filepath)
     if err != nil {
-        log.Fatal(err)
+        // If we can't open the file for whatever reason, simply return the empty struct
+        // TODO: This might suck a bit
+        fmt.Printf("Error opening", filepath)
+        return &config
     }
 
-    config := CrisgoConfig{}
 
     err = yaml.Unmarshal(fileContents, &config)
     if err != nil {
