@@ -48,18 +48,20 @@ func NewCrisgoConfig(filepath string) *CrisgoConfig {
     }
 
     // Check our values
-    tablename := DEFAULT_SQLITE_TABLE_NAME
-    if res, err := isZero(config.Tablename); res {
+    res, err := isZero(config.Tablename)
+    if res || err != nil {
         config.Tablename = DEFAULT_SQLITE_TABLE_NAME
     }
 
     // Get file_path
-    if res, err := isZero(config.DatabaseFilePath); res {
+    res, err = isZero(config.DatabaseFilePath)
+    if res || err != nil {
         config.DatabaseFilePath = DEFAULT_SQLITE_FILE_PATH
     }
 
     // Get port_number
-    if res, err := isZero(config.PortNumber); res {
+    res, err = isZero(config.PortNumber)
+    if res || err != nil {
         config.PortNumber = DEFAULT_PORT_NUMBER
     }
 
