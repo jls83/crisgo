@@ -6,6 +6,7 @@ import (
 
     _ "github.com/mattn/go-sqlite3"
 
+    "github.com/jls83/crisgo/config"
     "github.com/jls83/crisgo/types"
 )
 
@@ -24,11 +25,11 @@ type SqliteStorage struct {
     tableName string
 }
 
-func NewSqliteStorage(databasePath string, tableName string) *SqliteStorage {
-    db, err := sql.Open("sqlite3", databasePath)
+func NewSqliteStorage(appConfig *config.CrisgoConfig) *SqliteStorage {
+    db, err := sql.Open("sqlite3", appConfig.DatabaseFilePath)
     checkErr(err)
 
-    sqliteStorage := SqliteStorage{db, databasePath, tableName}
+    sqliteStorage := SqliteStorage{db, appConfig.DatabaseFilePath, appConfig.Tablename}
 
     return &sqliteStorage
 }

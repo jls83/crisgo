@@ -100,15 +100,15 @@ func BuildShorten(m storage.ResultStorage) func(w http.ResponseWriter, r *http.R
 func main() {
     configFile := "base_config.yaml"
 
-    config := config.NewCrisgoConfig(configFile)
+    appConfig := config.NewCrisgoConfig(configFile)
 
-    fmt.Printf("--- config:\n%v\n\n", config)
+    fmt.Printf("--- appConfig:\n%v\n\n", appConfig)
 
     // TODO: Re-add our `flag` items
 
     // TODO: Have the `New` methods simply take in a `CrisgoConfig` instance!
     // m := storage.NewLocalStorage()
-    m := storage.NewSqliteStorage(config.DatabaseFilePath, config.Tablename)
+    m := storage.NewSqliteStorage(appConfig)
     defer m.Close()
 
     err := m.CreateTable()
@@ -122,8 +122,8 @@ func main() {
     http.HandleFunc("/redirector/", BuildRedirector(m))
 
     // TODO: Put this out via a logger instead
-    fmt.Println("Listening on port", config.PortNumber)
-    addr := ":" + strconv.Itoa(config.PortNumber)
+    fmt.Println("Listening on port", appConfig.PortNumber)
+    addr := ":" + strconv.Itoa(appConfig.PortNumber)
     http.ListenAndServe(addr, nil)
 }
 
