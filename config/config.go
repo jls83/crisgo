@@ -25,7 +25,7 @@ func isZero(v interface{}) (bool, error) {
 }
 
 type CrisgoConfig struct {
-    Tablename           string  `yaml:"tablename"`
+    TableName           string  `yaml:"tablename"`
     DatabaseFilePath    string  `yaml:"database_file_path"`
     PortNumber          int     `yaml:"port_number"`
 }
@@ -48,9 +48,9 @@ func NewCrisgoConfig(filepath string) *CrisgoConfig {
     }
 
     // Check our values
-    res, err := isZero(config.Tablename)
+    res, err := isZero(config.TableName)
     if res || err != nil {
-        config.Tablename = DEFAULT_SQLITE_TABLE_NAME
+        config.TableName = DEFAULT_SQLITE_TABLE_NAME
     }
 
     // Get file_path

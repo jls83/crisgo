@@ -28,7 +28,7 @@ func NewSqliteStorage(appConfig *config.CrisgoConfig) *SqliteStorage {
     db, err := sql.Open("sqlite3", appConfig.DatabaseFilePath)
     checkErr(err)
 
-    sqliteStorage := SqliteStorage{db, appConfig.Tablename}
+    sqliteStorage := SqliteStorage{db, appConfig.TableName}
 
     return &sqliteStorage
 }
