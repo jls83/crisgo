@@ -127,7 +127,7 @@ func (s *SqliteStorage) GetResultMapKey() types.ResKey {
 }
 
 func (s *SqliteStorage) GetValue(k types.ResKey) (types.ResValue, bool) {
-    selectStr := fmt.Sprintf("SELECT url FROM %s WHERE %s.shorten_key = %s LIMIT 1", s.tableName, s.tableName, k)
+    selectStr := fmt.Sprintf("SELECT url FROM %s WHERE %s.shorten_key = \"%s\" LIMIT 1", s.tableName, s.tableName, k)
     selectRows, err := s._db.Query(selectStr)
 
     if err != nil {
