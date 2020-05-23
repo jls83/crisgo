@@ -98,16 +98,16 @@ func BuildShorten(m storage.ResultStorage) func(w http.ResponseWriter, r *http.R
 }
 
 // Section: Other
-func checkPortNumber(portNumberPtr *int) (*int, error) {
-    PORT_NUMBER_MIN := int(1)
-    PORT_NUMBER_MAX := int(65535)
+// func checkPortNumber(portNumberPtr *int) (*int, error) {
+//     PORT_NUMBER_MIN := int(1)
+//     PORT_NUMBER_MAX := int(65535)
 
-    if (*portNumberPtr < PORT_NUMBER_MIN) || (*portNumberPtr >= PORT_NUMBER_MAX) {
-        return portNumberPtr, errors.New(fmt.Sprintf("Port %s is out of range", &portNumberPtr))
-    }
+//     if (*portNumberPtr < PORT_NUMBER_MIN) || (*portNumberPtr >= PORT_NUMBER_MAX) {
+//         return portNumberPtr, errors.New(fmt.Sprintf("Port %s is out of range", &portNumberPtr))
+//     }
 
-    return portNumberPtr, nil
-}
+//     return portNumberPtr, nil
+// }
 
 // Main
 func main() {
@@ -115,40 +115,22 @@ func main() {
 
     config := config.NewCrisgoConfig(configFile)
 
-    // TODO: Move this sort of logic into the actual "constructor"
-    // Get tablename
-    tablename := storage.SQLITE_TABLE_NAME
-    if !reflect.ValueOf(config.Tablename).IsZero() {
-        tablename = config.Tablename
-    }
-
-    // Get file_path
-    databaseFilePath := storage.SQLITE_FILE_PATH
-    if !reflect.ValueOf(config.DatabaseFilePath).IsZero() {
-        databaseFilePath = config.DatabaseFilePath
-    }
-
-    // Get port_number
-    portNumber := "8080"
-    if !reflect.ValueOf(config.PortNumber).IsZero() {
-        portNumber = string(config.PortNumber)
-    }
-
     fmt.Printf("--- config:\n%v\n\n", config)
 
-    portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
-    flag.Parse()
+    // TODO: Re-add our `flag` items
+    // portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
+    // flag.Parse()
 
-    portNumberPtr, portErr := checkPortNumber(portNumberPtr)
-    if portErr != nil {
-        portNumber = "8080"
-    } else {
-        portNumber = strconv.Itoa(*portNumberPtr)
-    }
+    // portNumberPtr, portErr := checkPortNumber(portNumberPtr)
+    // if portErr != nil {
+    //     portNumber = config.PortNumber
+    // } else {
+    //     portNumber = strconv.Itoa(*portNumberPtr)
+    // }
 
     // TODO: Have the `New` methods simply take in a `CrisgoConfig` instance!
     // m := storage.NewLocalStorage()
-    m := storage.NewSqliteStorage(databaseFilePath, tablename)
+    m := storage.NewSqliteStorage(config.DatabaseFilePath, config.Tablename)
     defer m.Close()
 
     err := m.CreateTable()
@@ -162,7 +144,7 @@ func main() {
     http.HandleFunc("/redirector/", BuildRedirector(m))
 
     // TODO: Put this out via a logger instead
-    fmt.Println("Listening on port", portNumber)
+    fmt.Println("Listening on port", config.PortNumber)
     addr := ":" + portNumber
     http.ListenAndServe(addr, nil)
 }
