@@ -146,6 +146,7 @@ func main() {
         portNumber = strconv.Itoa(*portNumberPtr)
     }
 
+    // TODO: Have the `New` methods simply take in a `CrisgoConfig` instance!
     // m := storage.NewLocalStorage()
     m := storage.NewSqliteStorage(databaseFilePath, tablename)
     defer m.Close()
