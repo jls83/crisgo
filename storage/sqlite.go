@@ -21,7 +21,6 @@ func checkErr(err error) {
 
 type SqliteStorage struct {
     _db *sql.DB
-    databasePath string
     tableName string
 }
 
@@ -29,7 +28,7 @@ func NewSqliteStorage(appConfig *config.CrisgoConfig) *SqliteStorage {
     db, err := sql.Open("sqlite3", appConfig.DatabaseFilePath)
     checkErr(err)
 
-    sqliteStorage := SqliteStorage{db, appConfig.DatabaseFilePath, appConfig.Tablename}
+    sqliteStorage := SqliteStorage{db, appConfig.Tablename}
 
     return &sqliteStorage
 }
