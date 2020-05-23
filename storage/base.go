@@ -154,7 +154,7 @@ func (s *SqliteStorage) InsertValue(v types.ResValue) types.ResKey {
     for hasKey {
         resultKey = s.GetResultMapKey()
         selectStr := fmt.Sprintf("SELECT COUNT(*) FROM %s " +
-                                 "WHERE %s.shorten_key = %s LIMIT 1;", s.tableName, s.tableName, resultKey)
+                                 "WHERE %s.shorten_key = \"%s\" LIMIT 1;", s.tableName, s.tableName, resultKey)
         selectRows, err := s._db.Query(selectStr)
         checkErr(err)
 
@@ -175,10 +175,13 @@ func (s *SqliteStorage) InsertValue(v types.ResValue) types.ResKey {
     insertStatement, err := s._db.Prepare(insertStr)
     checkErr(err)
 
-    _, err = insertStatement.Exec(v, resultKey)
+    res, err := insertStatement.Exec(v, resultKey)
     checkErr(err)
+
+    affect, err := res.RowsAffected()
+    checkErr(err)
+
+    fmt.Printf("Inserted %s; %d Rows affected", string(v), affect)
 
     return resultKey
 }
-
-
