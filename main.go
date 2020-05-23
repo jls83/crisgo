@@ -1,8 +1,8 @@
 package main
 
 import (
-    "errors"
-    "flag"
+    // "errors"
+    // "flag"
     "fmt"
     "strconv"
     "strings"
@@ -144,7 +144,7 @@ func main() {
 
     // TODO: Put this out via a logger instead
     fmt.Println("Listening on port", config.PortNumber)
-    addr := ":" + portNumber
+    addr := ":" + strconv.Itoa(config.PortNumber)
     http.ListenAndServe(addr, nil)
 }
 
