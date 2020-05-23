@@ -4,6 +4,7 @@ import (
     "errors"
     "flag"
     "fmt"
+    "reflect"
     "strconv"
     "strings"
     "encoding/json"
@@ -114,12 +115,30 @@ func main() {
 
     config := config.NewCrisgoConfig(configFile)
 
+    // TODO: Move this sort of logic into the actual "constructor"
+    // Get tablename
+    tablename := storage.SQLITE_TABLE_NAME
+    if !reflect.ValueOf(config.Tablename).IsZero() {
+        tablename = config.Tablename
+    }
+
+    // Get file_path
+    databaseFilePath := storage.SQLITE_FILE_PATH
+    if !reflect.ValueOf(config.DatabaseFilePath).IsZero() {
+        databaseFilePath = config.DatabaseFilePath
+    }
+
+    // Get port_number
+    portNumber := "8080"
+    if !reflect.ValueOf(config.PortNumber).IsZero() {
+        portNumber = string(config.PortNumber)
+    }
+
     fmt.Printf("--- config:\n%v\n\n", config)
 
     portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
     flag.Parse()
 
-    var portNumber string
     portNumberPtr, portErr := checkPortNumber(portNumberPtr)
     if portErr != nil {
         portNumber = "8080"
@@ -128,7 +147,7 @@ func main() {
     }
 
     // m := storage.NewLocalStorage()
-    m := storage.NewSqliteStorage(storage.SQLITE_FILE_PATH, storage.SQLITE_TABLE_NAME)
+    m := storage.NewSqliteStorage(databaseFilePath, tablename)
     defer m.Close()
 
     err := m.CreateTable()
