@@ -96,18 +96,6 @@ func BuildShorten(m storage.ResultStorage) func(w http.ResponseWriter, r *http.R
     }
 }
 
-// Section: Other
-// func checkPortNumber(portNumberPtr *int) (*int, error) {
-//     PORT_NUMBER_MIN := int(1)
-//     PORT_NUMBER_MAX := int(65535)
-
-//     if (*portNumberPtr < PORT_NUMBER_MIN) || (*portNumberPtr >= PORT_NUMBER_MAX) {
-//         return portNumberPtr, errors.New(fmt.Sprintf("Port %s is out of range", &portNumberPtr))
-//     }
-
-//     return portNumberPtr, nil
-// }
-
 // Main
 func main() {
     configFile := "base_config.yaml"
@@ -117,15 +105,6 @@ func main() {
     fmt.Printf("--- config:\n%v\n\n", config)
 
     // TODO: Re-add our `flag` items
-    // portNumberPtr := flag.Int("port", 8080, "The port number to listen on")
-    // flag.Parse()
-
-    // portNumberPtr, portErr := checkPortNumber(portNumberPtr)
-    // if portErr != nil {
-    //     portNumber = config.PortNumber
-    // } else {
-    //     portNumber = strconv.Itoa(*portNumberPtr)
-    // }
 
     // TODO: Have the `New` methods simply take in a `CrisgoConfig` instance!
     // m := storage.NewLocalStorage()
