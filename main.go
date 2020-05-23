@@ -9,6 +9,7 @@ import (
     "encoding/json"
     "net/http"
 
+    "github.com/jls83/crisgo/config"
     "github.com/jls83/crisgo/storage"
     "github.com/jls83/crisgo/types"
 )
