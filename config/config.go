@@ -3,6 +3,7 @@ package config
 import (
     "fmt"
     "log"
+    "reflect"
     "io/ioutil"
 
     "gopkg.in/yaml.v2"
@@ -12,6 +13,16 @@ const DEFAULT_PORT_NUMBER = 8080
 
 const DEFAULT_SQLITE_FILE_PATH = "crisgo.db"
 const DEFAULT_SQLITE_TABLE_NAME = "shortened_urls"
+
+// NOTE: Go v1.13 introduces this method in the `reflect` package directly, but my personal
+// machine only has v1.12
+func isZero(v interface{}) (bool, error) {
+    t := reflect.TypeOf(v)
+    if !t.Comparable() {
+        return false, fmt.Errorf("type is not comparable: %v", t)
+    }
+    return v == reflect.Zero(t).Interface(), nil
+}
 
 type CrisgoConfig struct {
     Tablename           string  `yaml:"tablename"`
@@ -38,17 +49,17 @@ func NewCrisgoConfig(filepath string) *CrisgoConfig {
 
     // Check our values
     tablename := DEFAULT_SQLITE_TABLE_NAME
-    if reflect.ValueOf(config.Tablename).IsZero() {
+    if res, err := isZero(config.Tablename); res {
         config.Tablename = DEFAULT_SQLITE_TABLE_NAME
     }
 
     // Get file_path
-    if reflect.ValueOf(config.DatabaseFilePath).IsZero() {
+    if res, err := isZero(config.DatabaseFilePath); res {
         config.DatabaseFilePath = DEFAULT_SQLITE_FILE_PATH
     }
 
     // Get port_number
-    if reflect.ValueOf(config.PortNumber).IsZero() {
+    if res, err := isZero(config.PortNumber); res {
         config.PortNumber = DEFAULT_PORT_NUMBER
     }
 
