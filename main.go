@@ -102,8 +102,6 @@ func main() {
 
     appConfig := config.NewCrisgoConfig(configFile)
 
-    fmt.Printf("--- appConfig:\n%v\n\n", appConfig)
-
     // TODO: Re-add our `flag` items
 
     // TODO: Have the `New` methods simply take in a `CrisgoConfig` instance!
